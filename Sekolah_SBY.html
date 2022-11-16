@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, inittial-scale=1" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		
+		<!--Title-->
+		<title>
+			Titik Sekolah di Surabaya
+		</title>
+		
+		<!--Leaflet-->
+		<link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+		<link rel="stylesheet" href="lib/leaflet/leaflet.label.css" />
+		
+		<script src="lib/leaflet/leaflet.js"></script>
+		<script src="lib/leaflet/leaflet.label.js"></script>
+		
+		<!--GeoJSON-->
+		<script src="D:\UGM Bita\SEMESTER 3\Pemrograman Spasial\Tugas\WebGIS Titik Sekolah di Surabaya_Aulia Putri Sabita\School.geojson"></script>
+	
+		<!--Style (CSS)-->
+		<style type="text/css">
+			#map { height : 500px; }
+			.legend {background : transparant; line-height: 1.5em }
+			.legend i { width : 5em; float: left }
+		</style>
+	</head>
+
+	<body>
+		<h1>Sekolah di Surabaya</h1>
+		
+		<div id="map"></div>
+		
+		<script>
+		
+			//Set View
+			var map = L.map('map').setView([0, 0], 0);
+		
+			//Basemap: OpenStreetMap
+			var layer_OSM = L.tileLayer( 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+				subdomains: ['a','b','c']
+			}).addTo(map);
+		
+			//Basemap: OpenTopoMap
+			var layer_OTM = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+				maxZoom: 17,
+				attribution: 'Map data: &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>,' +
+				' <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; ' +
+				'<a href="https://opentopomap.org">OpenTopoMap</a> ' +
+				'(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+			}).addTo(map);
+		
+			//Basemap: StatemenTerrainMap
+			var layer_ST = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}{r}.{ext}', {
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ' +
+				'<a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; ' +
+				'Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+				subdomains: 'abcd',
+				minZoom: 0,
+				maxZoom: 18,
+				ext: 'png'
+			}).addTo(map);
+		
+			//Basemap: StamenWaterColorMap
+			var layer_SWC = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.{ext}', {
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, ' +
+				'<a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; ' +
+				'Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+				subdomains: 'abcd',
+				minZoom: 1,
+				maxZoom: 16,
+				ext: 'png'
+			}).addTo(map);
+
+			var layer_school;
+		
+			//Zoom to Feature - school
+			function zoomToFeatureschool(e){
+				e.target.bindPopup(
+				'<h1>'+e.target.feature.properties.name.toString()+'</h1><p>Deskripsi : '+e.target.feature.properties.type.toString()+'</p><div><img style="width:100%" src"data/foto/'+e.target.feature.properties.FOTO.toString()+'" alt="image" /></div>',
+				{minWidth : 256}
+				);
+			}
+			//Set Mouse Event - school
+			function regionsOnEachFeatureschool(feature, layer){
+		
+				layer.bindLabel(feature.properties.name.toString(), {noHide : false});
+				layer.on(
+					{
+						click : zoomToFeatureschool
+					}
+		
+				);
+			}
+			
+			// Add School
+			layer_school = L.geoJson(
+				school,
+				{
+					pointToLayer: function(feature, latlng) {
+						var smallIcon = new L.Icon({
+							iconSize: [22, 22],
+							iconAnchor: [13, 27],
+							popupAnchor: [1, -24],
+							iconUrl: 'icon/school3.png',
+						});
+						return L.marker(latlng, {icon: smallIcon});
+					},
+					
+					onEachFeature : regionsOnEachFeatureschool
+				}
+			).addTo(map);
+
+			//Layer control
+			var baseMaps = {
+				'OpenStreetMap' : layer_OSM,
+				'OpenTopoMap' : layer_OTM,
+				'StamenTerrainMap' : layer_ST,
+				'StamenWaterColorMap' : layer_SWC
+			};
+			
+			var overlayMaps = {
+				'school' : layer_school,
+			};
+			
+			L.control.layers(baseMaps, overlayMaps).addTo(map);
+			
+		//legend
+		var legend = L.control({position : 'bottomleft'});
+		legend.onAdd = function (map) {
+			var div = L.DomUtil.create('div', 'info legend'),
+				grades = ["School Name"],
+				labels = ["icon/school3.png"];
+			for (var i = 0; i < grades.length; i++) {
+				div.innerHTML +="<img src=" + labels[i] + " height='40' width='40'> " + grades[i] + '<br>';
+			}
+
+			return div;
+		};
+		legend.addTo(map);
+
+		</script>
+	</body>
+</html>
